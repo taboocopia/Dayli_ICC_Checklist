@@ -1169,6 +1169,67 @@
     }
     .calc-guide-link:active { opacity: 1; }
 
+    .confirm-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-modal.open { display: flex; }
+    .confirm-modal-backdrop {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+    }
+    .confirm-modal-card {
+      position: relative;
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 18px;
+      padding: 26px 22px 20px;
+      max-width: 320px;
+      width: 85%;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    }
+    .confirm-modal-text {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+    .confirm-modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .confirm-modal-cancel,
+    .confirm-modal-confirm {
+      flex: 1;
+      padding: 11px 0;
+      border-radius: 99px;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .confirm-modal-cancel {
+      background: none;
+      border: 1.5px solid var(--check-border);
+      color: var(--text-primary);
+    }
+    .confirm-modal-confirm {
+      background: var(--accent);
+      border: none;
+      color: #ffffff;
+    }
+
     .pdf-modal {
       display: none;
       position: fixed;
@@ -2967,7 +3028,15 @@
     // CONFIRM RESET — clears main checklist only
     // =============================================
     function confirmReset() {
-      if (!confirm("This clears your whole checklist. Ready?")) return;
+      document.getElementById('resetConfirmModal').classList.add('open');
+    }
+
+    function closeResetConfirm() {
+      document.getElementById('resetConfirmModal').classList.remove('open');
+    }
+
+    function performReset() {
+      closeResetConfirm();
 
       // Clear checklist items for the current setup mode only
       const prefix = state.setup + '_';
@@ -3005,6 +3074,17 @@
     // =============================================
     init();
   </script>
+
+<div class="confirm-modal" id="resetConfirmModal">
+  <div class="confirm-modal-backdrop" onclick="closeResetConfirm()"></div>
+  <div class="confirm-modal-card">
+    <p class="confirm-modal-text">This clears your whole checklist. Ready?</p>
+    <div class="confirm-modal-buttons">
+      <button class="confirm-modal-cancel" onclick="closeResetConfirm()">Cancel</button>
+      <button class="confirm-modal-confirm" onclick="performReset()">Reset</button>
+    </div>
+  </div>
+</div>
 
 <div class="pdf-modal" id="pdfModal">
   <div class="pdf-modal-header">
