@@ -124,7 +124,7 @@
       color: #1a0505;
     }
     body.theme-dark .info-note {
-      background: #2A1418;
+      background: var(--accent);
       color: var(--text-primary);
     }
     .icc-trade-title { color: var(--accent); }
@@ -175,11 +175,26 @@
       -webkit-backdrop-filter: blur(10px);
       backdrop-filter: blur(10px);
       border-bottom: 2px solid var(--card-border);
-      padding: 10px 18px 10px;
+      padding: 10px 18px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sticky-header-row {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+    .gate-status-strip {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 0.02em;
+      color: var(--subtext);
+      min-height: 14px;
+    }
+    .gate-status-strip.flagged { color: #de0826; }
+    .gate-status-strip.clear   { color: #1f9d55; }
 
     .progress-label {
       font-family: var(--font-body);
@@ -461,20 +476,20 @@
 
     /* Phase color themes */
     .phase-1 .section-header { background: var(--phase1-bg); color: #39243D; }
-    .phase-1 .section-num    { background: #39243D; }
-    .phase-1 .section-tag    { background: #39243D; color: #ffffff; }
+    .phase-1 .section-num    { background: var(--accent); }
+    .phase-1 .section-tag    { background: var(--accent); color: #ffffff; }
 
     .phase-2 .section-header { background: var(--phase2-bg); color: #39243D; }
-    .phase-2 .section-num    { background: #39243D; }
-    .phase-2 .section-tag    { background: #39243D; color: #ffffff; }
+    .phase-2 .section-num    { background: var(--accent); }
+    .phase-2 .section-tag    { background: var(--accent); color: #ffffff; }
 
     .phase-3 .section-header { background: var(--phase3-bg); color: #39243D; }
-    .phase-3 .section-num    { background: #39243D; }
-    .phase-3 .section-tag    { background: #39243D; color: #ffffff; }
+    .phase-3 .section-num    { background: var(--accent); }
+    .phase-3 .section-tag    { background: var(--accent); color: #ffffff; }
 
     .phase-4 .section-header { background: var(--phase4-bg); color: #39243D; }
-    .phase-4 .section-num    { background: #39243D; }
-    .phase-4 .section-tag    { background: #39243D; color: #ffffff; }
+    .phase-4 .section-num    { background: var(--accent); }
+    .phase-4 .section-tag    { background: var(--accent); color: #ffffff; }
 
     /* Info section: header matches the Reset button gradient; body stays plain white */
     .info-section .section-header {
@@ -1251,12 +1266,15 @@
   ============================================= -->
 
   <div class="sticky-header" id="stickyHeader">
-    <span class="progress-label">Progress</span>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="progressFill"></div>
+    <div class="sticky-header-row">
+      <span class="progress-label">Progress</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <span class="progress-count" id="progressCount">0 / 0</span>
+      <button class="btn-reset-sm" onclick="confirmReset()">Reset</button>
     </div>
-    <span class="progress-count" id="progressCount">0 / 0</span>
-    <button class="btn-reset-sm" onclick="confirmReset()">Reset</button>
+    <div class="gate-status-strip" id="gateStatusStrip"></div>
   </div>
 
   <!-- =============================================
@@ -2026,6 +2044,45 @@
       });
     }
 
+    // =============================================
+    // AT-A-GLANCE GATE STATUS STRIP
+    // Summarizes all 6 yes/no gates for the current
+    // setup mode, so you don't have to scroll back up
+    // to see if anything's been flagged.
+    // =============================================
+    function renderGateStatus() {
+      const el = document.getElementById('gateStatusStrip');
+      if (!el) return;
+
+      const g = state.gates[state.setup];
+      // [value, goodAnswer] — goodAnswer is which value ('yes'/'no') means "all clear" for that gate
+      const checks = [
+        [g.bias,   'yes'],
+        [g.retest, 'yes'],
+        [g.closed, 'yes'],
+        [g.calm,   'yes'],
+        [state.inv[state.setup], 'no'],  // inv: yes = broke wrong way = bad
+        [g.filled, 'no'],                // filled: yes = no fill = bad
+      ];
+
+      let answered = 0;
+      let flagged = 0;
+      checks.forEach(([value, goodAnswer]) => {
+        if (value !== null && value !== undefined) {
+          answered++;
+          if (value !== goodAnswer) flagged++;
+        }
+      });
+
+      el.classList.remove('flagged', 'clear');
+      if (flagged > 0) {
+        el.textContent = '✗ No trade';
+        el.classList.add('flagged');
+      } else {
+        el.textContent = '';
+      }
+    }
+
 
     // =============================================
     // STATE — loaded from localStorage on init
@@ -2142,6 +2199,7 @@
     // Render progress bar and count — scoped to current setup mode
     function renderProgress() {
       renderSectionBadges();
+      renderGateStatus();
       let total = 0;
       let done  = 0;
       MAIN_ITEMS.forEach(id => {
@@ -2303,14 +2361,22 @@
       renderProgress(); // always update progress immediately
     }
 
+    // Applies both the color class AND a ✓/✗ icon to a Yes/No button,
+    // so the meaning never relies on color alone.
+    function setGateButton(btn, label, selectedClass) {
+      btn.className = 'pm-btn' + (selectedClass ? ' ' + selectedClass : '');
+      const icon = selectedClass === 'selected-yes' ? '✓ ' : selectedClass === 'selected-no' ? '✗ ' : '';
+      btn.textContent = icon + label;
+    }
+
     function renderInv() {
       const ans = state.inv[state.setup] || null;
       const yesBtn = document.getElementById('inv-yes');
       const noBtn  = document.getElementById('inv-no');
       if (!yesBtn || !noBtn) return;
       // Flipped from the other gates: here YES means "it broke wrong" = bad = red.
-      yesBtn.className = 'pm-btn' + (ans === 'yes' ? ' selected-no'  : '');
-      noBtn.className  = 'pm-btn' + (ans === 'no'  ? ' selected-yes' : '');
+      setGateButton(yesBtn, 'Yes', ans === 'yes' ? 'selected-no' : null);
+      setGateButton(noBtn,  'No',  ans === 'no'  ? 'selected-yes' : null);
     }
 
     // =============================================
@@ -2841,8 +2907,8 @@
       const yesBtn = document.getElementById(gateName + '-yes');
       const noBtn  = document.getElementById(gateName + '-no');
       if (!yesBtn || !noBtn) return;
-      yesBtn.className = 'pm-btn' + (ans === 'yes' ? ' selected-yes' : '');
-      noBtn.className  = 'pm-btn' + (ans === 'no'  ? ' selected-no'  : '');
+      setGateButton(yesBtn, 'Yes', ans === 'yes' ? 'selected-yes' : null);
+      setGateButton(noBtn,  'No',  ans === 'no'  ? 'selected-no'  : null);
     }
 
     function renderGates() {
@@ -2869,8 +2935,8 @@
       const yesBtn = document.getElementById('filled-yes');
       const noBtn  = document.getElementById('filled-no');
       if (!yesBtn || !noBtn) return;
-      yesBtn.className = 'pm-btn' + (ans === 'yes' ? ' selected-no'  : '');
-      noBtn.className  = 'pm-btn' + (ans === 'no'  ? ' selected-yes' : '');
+      setGateButton(yesBtn, 'Yes', ans === 'yes' ? 'selected-no' : null);
+      setGateButton(noBtn,  'No',  ans === 'no'  ? 'selected-yes' : null);
     }
 
     // =============================================
@@ -2901,6 +2967,8 @@
     // CONFIRM RESET — clears main checklist only
     // =============================================
     function confirmReset() {
+      if (!confirm("This clears your whole checklist. Ready?")) return;
+
       // Clear checklist items for the current setup mode only
       const prefix = state.setup + '_';
       const newChecklist = {};
