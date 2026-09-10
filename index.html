@@ -102,8 +102,7 @@
     body.theme-dark .flow-title,
     body.theme-dark .calc-row-label,
     body.theme-dark .calc-field-label,
-    body.theme-dark .calc-input,
-    body.theme-dark .toggle-btn {
+    body.theme-dark .calc-input {
       color: var(--text-primary);
     }
     body.theme-dark .from-dayli,
@@ -125,9 +124,6 @@
     body.theme-dark .info-note {
       background: var(--accent);
       color: var(--text-primary);
-    }
-    body.theme-dark .setup-mode-indicator {
-      background: var(--phase4-bg);
     }
     .icc-trade-title { color: var(--accent); }
     body.theme-dark .icc-trade-title {
@@ -381,19 +377,43 @@
 
     .toggle-btn {
       flex: 1;
-      padding: 10px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 12px 0 10px;
       border: 2px solid var(--card-border);
       border-radius: 14px;
       font-family: var(--font-body);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
       cursor: pointer;
       transition: all 0.22s;
       background: var(--card-bg);
       color: var(--accent);
       -webkit-tap-highlight-color: transparent;
+    }
+
+    .toggle-arrow {
+      width: 20px;
+      height: 20px;
+      margin-bottom: 2px;
+    }
+    .toggle-btn.active-buy .toggle-arrow  { color: var(--phase3-bg); }
+    .toggle-btn.active-sell .toggle-arrow { color: var(--phase2-bg); }
+    .toggle-btn:not(.active-buy):not(.active-sell) .toggle-arrow { color: var(--subtext); opacity: 0.6; }
+    body.theme-dark .toggle-btn.active-buy .toggle-arrow  { color: var(--phase2-bg); }
+    body.theme-dark .toggle-btn.active-sell .toggle-arrow { color: var(--phase4-bg); }
+
+    .toggle-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+    .toggle-caption {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      opacity: 0.75;
     }
 
     .toggle-btn.active-buy,
@@ -402,6 +422,16 @@
       border-color: var(--accent);
       color: var(--accent);
       box-shadow: 0 2px 8px rgba(101,158,165,0.18);
+    }
+    body.theme-dark .toggle-btn:not(.active-buy):not(.active-sell) {
+      color: var(--text-primary);
+    }
+    body.theme-dark .toggle-btn.active-buy,
+    body.theme-dark .toggle-btn.active-sell {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--text-primary);
+      box-shadow: none;
     }
 
     /* =============================================
@@ -1302,20 +1332,6 @@
     /* =============================================
        SETUP TYPE LABEL BADGE (Buy/Sell indicator)
     ============================================= */
-    .setup-mode-indicator {
-      display: block;
-      width: fit-content;
-      margin: 0 auto 10px;
-      text-align: center;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--accent);
-      background: var(--phase2-bg);
-      padding: 5px 14px;
-      border-radius: 99px;
-    }
 
     /* =============================================
        HIDDEN UTILITY
@@ -1449,12 +1465,17 @@
      if you want fully independent buy/sell checklists.
 ============================================= -->
 <div class="setup-toggle">
-  <button class="toggle-btn active-buy" id="toggleBuy" onclick="setSetup('buy')">Buy Setup</button>
-  <button class="toggle-btn" id="toggleSell" onclick="setSetup('sell')">Sell Setup</button>
+  <button class="toggle-btn active-buy" id="toggleBuy" onclick="setSetup('buy')">
+    <svg class="toggle-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"></polyline><polyline points="14 7 21 7 21 14"></polyline></svg>
+    <span class="toggle-title">Buy Setup</span>
+    <span class="toggle-caption">Bullish · Long</span>
+  </button>
+  <button class="toggle-btn" id="toggleSell" onclick="setSetup('sell')">
+    <svg class="toggle-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 7 9 13 13 9 21 17"></polyline><polyline points="14 17 21 17 21 10"></polyline></svg>
+    <span class="toggle-title">Sell Setup</span>
+    <span class="toggle-caption">Bearish · Short</span>
+  </button>
 </div>
-
-<!-- Small label echoing current mode -->
-<div class="setup-mode-indicator" id="setupModeLabel">Bullish · Long Setup</div>
 
 <!-- =============================================
      PHASE 1 — HTF Bias & Setup Conditions
@@ -2310,15 +2331,12 @@
     function renderSetupToggle() {
       const buyBtn  = document.getElementById('toggleBuy');
       const sellBtn = document.getElementById('toggleSell');
-      const label   = document.getElementById('setupModeLabel');
       if (state.setup === 'buy') {
         buyBtn.className  = 'toggle-btn active-buy';
         sellBtn.className = 'toggle-btn';
-        label.textContent = 'Bullish · Long Setup';
       } else {
         buyBtn.className  = 'toggle-btn';
         sellBtn.className = 'toggle-btn active-sell';
-        label.textContent = 'Bearish · Short Setup';
       }
     }
 
