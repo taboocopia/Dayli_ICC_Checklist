@@ -106,7 +106,6 @@
     body.theme-dark .toggle-btn {
       color: var(--text-primary);
     }
-    body.theme-dark .setup-mode-indicator,
     body.theme-dark .from-dayli,
     body.theme-dark .bus-pass-title,
     body.theme-dark .calc-guide-link,
@@ -126,6 +125,9 @@
     body.theme-dark .info-note {
       background: var(--accent);
       color: var(--text-primary);
+    }
+    body.theme-dark .setup-mode-indicator {
+      background: var(--phase4-bg);
     }
     .icc-trade-title { color: var(--accent); }
     body.theme-dark .icc-trade-title {
@@ -674,14 +676,14 @@
       color: var(--text-primary);
       text-align: center;
     }
-    .closing-quote strong { font-style: normal; font-weight: 700; color: var(--phase2-bg); }
+    .closing-quote strong { font-style: normal; font-weight: 700; color: var(--phase1-bg); }
     .from-dayli {
       font-family: var(--font-body);
       font-style: normal;
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.1em;
-      color: var(--phase2-bg);
+      color: var(--phase1-bg);
       margin-bottom: 8px;
     }
 
@@ -1301,13 +1303,18 @@
        SETUP TYPE LABEL BADGE (Buy/Sell indicator)
     ============================================= */
     .setup-mode-indicator {
+      display: block;
+      width: fit-content;
+      margin: 0 auto 10px;
       text-align: center;
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--phase2-bg);
-      margin-bottom: 10px;
+      color: var(--accent);
+      background: var(--phase2-bg);
+      padding: 5px 14px;
+      border-radius: 99px;
     }
 
     /* =============================================
